@@ -29,7 +29,7 @@ public class NetMusicService extends Service {
     private int currentIndex = 0;
 
     private int currentTiem = 0;
-
+    private int allTime = 0;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -86,6 +86,11 @@ public class NetMusicService extends Service {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
+                    Intent intent = new Intent();
+                    intent.setAction("");
+                    allTime = player.getDuration();
+                    intent.putExtra("duration", allTime);  //通过Intent来传递歌曲的总长度
+                    sendBroadcast(intent);
                     handler.sendEmptyMessage(0);
                 }
             });
