@@ -81,7 +81,7 @@ public class NetMusicService extends Service {
         try {
             player.reset();
             player.setDataSource( musicUrl);
-            player.prepare();
+            player.prepareAsync();
             player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
