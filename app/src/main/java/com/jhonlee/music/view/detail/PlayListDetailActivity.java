@@ -20,6 +20,7 @@ import com.jhonlee.music.listener.MusicItemListener;
 import com.jhonlee.music.mvp.contract.DetailContract;
 import com.jhonlee.music.mvp.presenter.DetailPresenter;
 import com.jhonlee.music.pojo.SongMenuDetail;
+import com.jhonlee.music.view.play.MusicDetailActivity;
 
 import java.util.ArrayList;
 import java.util.List;

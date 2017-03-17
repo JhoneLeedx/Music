@@ -25,7 +25,7 @@
         <activity android:name=".PlayActivity" />
         <activity android:name=".MainActivity"/>
         <activity android:name=".view.detail.PlayListDetailActivity" />
-        <activity android:name=".view.detail.MusicDetailActivity" />
+        <activity android:name=".view.play.MusicDetailActivity" />
 
         <service android:name=".service.MusicService" />
         <service android:name=".service.NetMusicService" />

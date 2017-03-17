@@ -13,6 +13,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.jhonlee.music.listener.LyricListener;
 import com.jhonlee.music.pojo.SongMenuDetail;
 
 import java.io.IOException;
@@ -29,9 +30,11 @@ public class NetMusicService extends Service {
     private List<SongMenuDetail.TracksBean> mTracks;
     private GetMp3UrlReceiver mp3UrlReceiver;
     private MusicReceiver musicReceiver;
-    private int currentIndex = 0;
 
-    private int currentTiem = 0;
+    private LyricListener lyricListener;
+
+    private int currentIndex = 0;
+    private int currentTime = 0;
     private int allTime = 0;
     @Override
     public void onCreate() {
@@ -42,6 +45,12 @@ public class NetMusicService extends Service {
         musicReceiver = new MusicReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("startMusic");
+        filter.addAction("seekbarUpdate");
+        filter.addAction("seekbar");
+        filter.addAction("MusicNext");
+        filter.addAction("MusicPlay");
+        filter.addAction("MusicPause");
+        filter.addAction("MusicPrevious");
         registerReceiver(musicReceiver,filter);
 
 
@@ -56,10 +65,9 @@ public class NetMusicService extends Service {
                 if(what==-1){
                     Toast.makeText(NetMusicService.this,"音频资源异常",Toast.LENGTH_SHORT);
                     //   play(mp3Urls.get(currentIndex));
-                    Intent updateMusic = new Intent();
-                    updateMusic.setAction("updateMusic");
-                    updateMusic.putExtra("track",mTracks.get(currentIndex+1));
-                    sendBroadcast(updateMusic);
+                  /*  currentTime = 0;
+                    handler.sendEmptyMessage(0);*/
+                    nextMusic();
                 }
 
                 return false;
@@ -69,16 +77,7 @@ public class NetMusicService extends Service {
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                if (currentIndex==mp3Urls.size()-1){
-                    currentIndex = 0;
-                }else {
-                    currentIndex++;
-                }
-             //   play(mp3Urls.get(currentIndex));
-                Intent updateMusic = new Intent();
-                updateMusic.setAction("updateMusic");
-                updateMusic.putExtra("track",mTracks.get(currentIndex));
-                sendBroadcast(updateMusic);
+                nextMusic();
             }
         });
 
@@ -110,31 +109,76 @@ public class NetMusicService extends Service {
                     Intent intent = new Intent();
                     intent.setAction("getDuration");
                     allTime = player.getDuration();
+                    intent.putExtra("isplay",true);
                     intent.putExtra("duration", allTime);  //通过Intent来传递歌曲的总长度
                     sendBroadcast(intent);
                     handler.sendEmptyMessage(0);
                 }
             });
         } catch (IOException e) {
-            //showToast("资源文件,播放失败");
         }
-       // notification.onUpdataMusicNotifi(music, true);
     }
+    // 音乐暂停
+    private void pause() {
+        if (player.isPlaying()) {
+            currentTime = player.getCurrentPosition();
+            player.pause();
+            sendIsplaying();
+        }
 
+    }
+    // 音乐继续播放
+    private void resume() {
+        player.start();
+        if (currentTime > 0) {
+            player.seekTo(currentTime);
+        }
+        handler.sendEmptyMessage(0);
+        sendIsplaying();
+    }
+    // 音乐停止
+    private void stop() {
+        player.stop();
+        try {
+            player.prepare();
+        } catch (IOException e) {
+        }
+    }
+    //发送给播放页面player的播放状态
+    private void sendIsplaying(){
+        Intent intent = new Intent();
+        intent.setAction("isplay");
+        allTime = player.getDuration();
+        intent.putExtra("isplay",player.isPlaying());//通过Intent来传递歌曲的总长度
+        sendBroadcast(intent);
+    }
     private class MusicReceiver extends BroadcastReceiver{
-
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String url = intent.getStringExtra("url");
-            if (player.isPlaying()){
-
+            String action = intent.getAction();
+            if (action.equals("startMusic")){
+                String url = intent.getStringExtra("url");
+                for (int i=0;i<mp3Urls.size();i++){
+                    if(mp3Urls.get(i).equals(url))
+                        currentIndex = i;
+                }
+                play(url);
+            }else if (action.equals("MusicNext")){
+                nextMusic();
+            }else if (action.equals("MusicPause")){
+                pause();
+            }else if (action.equals("MusicPrevious")){
+                musicPreviousMusic();
+            }else if (action.equals("seekbar")){
+                int progress = intent.getIntExtra("progress",0);
+                if (progress!=0){
+                    currentTime = progress;
+                    resume();
+                }
+            }else if (action.equals("MusicPlay")){
+                resume();
             }
-            for (int i=0;i<mp3Urls.size();i++){
-                if(mp3Urls.get(i).equals(url))
-                    currentIndex = i;
-            }
-            play(url);
         }
     }
 
@@ -151,10 +195,10 @@ public class NetMusicService extends Service {
             super.handleMessage(msg);
             if (msg.what == 0){
                 if (player.isPlaying()){
-                    currentTiem = player.getCurrentPosition();
+                    currentTime = player.getCurrentPosition();
                     Intent intent = new Intent();
                     intent.setAction("upadateSeekbar");
-                    intent.putExtra("currentTime",currentTiem);
+                    intent.putExtra("currentTime",currentTime);
                     sendBroadcast(intent);
                     //间隔一秒给ui发消息更新seekbar
                     handler.sendEmptyMessageDelayed(0,1000);
@@ -162,4 +206,28 @@ public class NetMusicService extends Service {
             }
         }
     };
+    private void musicPreviousMusic(){
+        Intent updateMusic = new Intent();
+        updateMusic.setAction("updateMusic");
+        if (currentIndex==0){
+
+        }else {
+            currentIndex--;
+            updateMusic.putExtra("track",mTracks.get(currentIndex));
+            sendBroadcast(updateMusic);
+        }
+    }
+    //顺序播放
+    private void nextMusic(){
+
+        Intent updateMusic = new Intent();
+        updateMusic.setAction("updateMusic");
+        if (currentIndex==mTracks.size()-1){
+        }else {
+           currentIndex++;
+            updateMusic.putExtra("track",mTracks.get(currentIndex));
+            sendBroadcast(updateMusic);
+        }
+
+    }
 }

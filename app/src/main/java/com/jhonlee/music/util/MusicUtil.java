@@ -74,7 +74,6 @@ public class MusicUtil {
         }
     }
 
-
     /**
      * 从文件当中获取专辑封面位图
      * @param context
