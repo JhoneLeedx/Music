@@ -1,5 +1,8 @@
 package com.jhonlee.music.pojo;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
 
 /**
@@ -572,7 +575,7 @@ public class SongMenuDetail {
             }
         }
 
-        public static class TracksBean {
+        public static class TracksBean implements Parcelable{
             /**
              * name : I Just Wanna Run
              * id : 4386589
@@ -648,6 +651,45 @@ public class SongMenuDetail {
             private List<ArtistsBeanX> artists;
             private List<?> rtUrls;
             private List<String> transNames;
+
+            protected TracksBean(Parcel in) {
+                name = in.readString();
+                id = in.readInt();
+                position = in.readInt();
+                status = in.readInt();
+                fee = in.readInt();
+                copyrightId = in.readInt();
+                disc = in.readString();
+                no = in.readInt();
+                starred = in.readByte() != 0;
+                popularity = in.readInt();
+                score = in.readInt();
+                starredNum = in.readInt();
+                duration = in.readInt();
+                playedNum = in.readInt();
+                dayPlays = in.readInt();
+                hearTime = in.readInt();
+                ringtone = in.readString();
+                copyFrom = in.readString();
+                commentThreadId = in.readString();
+                ftype = in.readInt();
+                mvid = in.readInt();
+                rtype = in.readInt();
+                mp3Url = in.readString();
+                transNames = in.createStringArrayList();
+            }
+
+            public static final Creator<TracksBean> CREATOR = new Creator<TracksBean>() {
+                @Override
+                public TracksBean createFromParcel(Parcel in) {
+                    return new TracksBean(in);
+                }
+
+                @Override
+                public TracksBean[] newArray(int size) {
+                    return new TracksBean[size];
+                }
+            };
 
             public String getName() {
                 return name;
@@ -935,6 +977,39 @@ public class SongMenuDetail {
 
             public void setTransNames(List<String> transNames) {
                 this.transNames = transNames;
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(name);
+                dest.writeInt(id);
+                dest.writeInt(position);
+                dest.writeInt(status);
+                dest.writeInt(fee);
+                dest.writeInt(copyrightId);
+                dest.writeString(disc);
+                dest.writeInt(no);
+                dest.writeByte((byte) (starred ? 1 : 0));
+                dest.writeInt(popularity);
+                dest.writeInt(score);
+                dest.writeInt(starredNum);
+                dest.writeInt(duration);
+                dest.writeInt(playedNum);
+                dest.writeInt(dayPlays);
+                dest.writeInt(hearTime);
+                dest.writeString(ringtone);
+                dest.writeString(copyFrom);
+                dest.writeString(commentThreadId);
+                dest.writeInt(ftype);
+                dest.writeInt(mvid);
+                dest.writeInt(rtype);
+                dest.writeString(mp3Url);
+                dest.writeStringList(transNames);
             }
 
             public static class AlbumBean {

@@ -2,6 +2,7 @@ package com.jhonlee.music.network.api;
 
 import com.jhonlee.music.pojo.Recommend;
 import com.jhonlee.music.pojo.SongMenu;
+import com.jhonlee.music.pojo.SongToken;
 import com.jhonlee.music.pojo.Token;
 
 import retrofit2.http.POST;
@@ -20,4 +21,7 @@ public interface IMusicRequest {
     Observable<Token> getSongMenus(@Query("s") String search, @Query("type") int type, @Query("offset") int offset);
     @POST("playlist/detail")
     Observable<Token> getSongMenuDetials(@Query("id") int id);
+
+    @POST("song/detail")
+    Observable<SongToken> getSongDetial(@Query("id") int id, @Query("ids")String ids);
 }

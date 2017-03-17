@@ -11,6 +11,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
+
+import com.jhonlee.music.pojo.SongMenuDetail;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,7 +26,7 @@ public class NetMusicService extends Service {
 
     private MediaPlayer player;
     private List<String> mp3Urls;
-
+    private List<SongMenuDetail.TracksBean> mTracks;
     private GetMp3UrlReceiver mp3UrlReceiver;
     private MusicReceiver musicReceiver;
     private int currentIndex = 0;
@@ -47,7 +50,21 @@ public class NetMusicService extends Service {
         mp3filter.addAction("getMp3Urls");
         registerReceiver(mp3UrlReceiver,mp3filter);
 
+        player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                if(what==-1){
+                    Toast.makeText(NetMusicService.this,"音频资源异常",Toast.LENGTH_SHORT);
+                    //   play(mp3Urls.get(currentIndex));
+                    Intent updateMusic = new Intent();
+                    updateMusic.setAction("updateMusic");
+                    updateMusic.putExtra("track",mTracks.get(currentIndex+1));
+                    sendBroadcast(updateMusic);
+                }
 
+                return false;
+            }
+        });
 
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -57,7 +74,11 @@ public class NetMusicService extends Service {
                 }else {
                     currentIndex++;
                 }
-                play(mp3Urls.get(currentIndex));
+             //   play(mp3Urls.get(currentIndex));
+                Intent updateMusic = new Intent();
+                updateMusic.setAction("updateMusic");
+                updateMusic.putExtra("track",mTracks.get(currentIndex));
+                sendBroadcast(updateMusic);
             }
         });
 
@@ -87,7 +108,7 @@ public class NetMusicService extends Service {
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
                     Intent intent = new Intent();
-                    intent.setAction("");
+                    intent.setAction("getDuration");
                     allTime = player.getDuration();
                     intent.putExtra("duration", allTime);  //通过Intent来传递歌曲的总长度
                     sendBroadcast(intent);
@@ -121,6 +142,7 @@ public class NetMusicService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             mp3Urls = intent.getStringArrayListExtra("mp3Urls");
+            mTracks = intent.getParcelableArrayListExtra("list");
         }
     }
     private Handler handler  = new Handler(){
@@ -133,6 +155,7 @@ public class NetMusicService extends Service {
                     Intent intent = new Intent();
                     intent.setAction("upadateSeekbar");
                     intent.putExtra("currentTime",currentTiem);
+                    sendBroadcast(intent);
                     //间隔一秒给ui发消息更新seekbar
                     handler.sendEmptyMessageDelayed(0,1000);
                 }

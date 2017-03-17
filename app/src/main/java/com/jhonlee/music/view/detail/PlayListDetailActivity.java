@@ -2,6 +2,7 @@ package com.jhonlee.music.view.detail;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -110,16 +111,16 @@ public class PlayListDetailActivity extends AppCompatActivity implements DetailC
             musics.add(tracksBean.getMp3Url());
         }
         Intent intent = new Intent();
+        intent.putParcelableArrayListExtra("list", (ArrayList<? extends Parcelable>) list);
         intent.putStringArrayListExtra("mp3Urls", musics);
         intent.setAction("getMp3Urls");
         sendBroadcast(intent);
     }
 
     @Override
-    public void playItemMusic(String url) {
-        Intent i = new Intent();
-        i.setAction("startMusic");
-        i.putExtra("url",url);
-        sendBroadcast(i);
+    public void playItemMusic(SongMenuDetail.TracksBean track) {
+        Intent intent = new Intent(this,MusicDetailActivity.class);
+        intent.putExtra("track",track);
+        startActivity(intent);
     }
 }

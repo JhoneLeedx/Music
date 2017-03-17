@@ -35,8 +35,8 @@ public class PlayActivity extends AppCompatActivity {
     TextView tvPlayPause;
     @BindView(R.id.tv_next)
     TextView tvNext;
-    @BindView(R.id.tv_music_name)
-    TextView tvMusicName;
+   /* @BindView(R.id.tv_music_name)
+    TextView tvMusicName;*/
     @BindView(R.id.linearLayout)
     LinearLayout linearLayout;
     @BindView(R.id.seekBar)
@@ -142,7 +142,7 @@ public class PlayActivity extends AppCompatActivity {
             index = newIndex;
             if (newIndex >= 0) {
                 Music m = musics.get(newIndex);
-                tvMusicName.setText(m.getSong());
+                //tvMusicName.setText(m.getSong());
 
 //                seekBar.setMax(m.getDuration());
 //                tvTimeT.setText(toTime(m.getDuration()));

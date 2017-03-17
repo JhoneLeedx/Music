@@ -58,7 +58,7 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailHold
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.playItemMusic(track.getMp3Url());
+                listener.playItemMusic(track);
             }
         });
         holder.ivDetail.setOnClickListener(new View.OnClickListener() {
