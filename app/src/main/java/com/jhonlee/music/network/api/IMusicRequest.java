@@ -1,5 +1,6 @@
 package com.jhonlee.music.network.api;
 
+import com.jhonlee.music.pojo.LyricToken;
 import com.jhonlee.music.pojo.Recommend;
 import com.jhonlee.music.pojo.SongMenu;
 import com.jhonlee.music.pojo.SongToken;
@@ -24,4 +25,8 @@ public interface IMusicRequest {
 
     @POST("song/detail")
     Observable<SongToken> getSongDetial(@Query("id") int id, @Query("ids")String ids);
+
+    //lv=-1&kv=-1&tv=-1
+    @POST("song/lyric")
+    Observable<LyricToken> getSongLyric(@Query("id") int id, @Query("lv")int lv, @Query("kv")int kv, @Query("tv")int tv);
 }

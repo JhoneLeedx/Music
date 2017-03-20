@@ -23,7 +23,7 @@ import java.util.List;
  * Created by JhoneLee on 2017/3/16.
  */
 
-public class LrcView extends View implements LyricListener{
+public class LrcView extends View {
 
 
     private float mTextSize;//歌词字体大小
@@ -36,19 +36,18 @@ public class LrcView extends View implements LyricListener{
     private Paint mCurrentPaint;    //当前播放的字体的画笔
     private WeakReference<LrcView> lrcViewRef;
     private  LrcHandler mHandler;
-    public LrcView(Context context) {
-        this(context, null);
+    public LrcView(Context context,List<Lyric> mList) {
+        this(context,null,mList);
     }
 
-    public LrcView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-
+    public LrcView(Context context, AttributeSet attrs,List<Lyric> mList) {
+        super(context,attrs);
+        init(mList);
     }
 
-    private void init(){
+    private void init(List<Lyric> mList){
 
-        lrcViewRef = new WeakReference<LrcView>(this);
+        lrcViewRef = new WeakReference<LrcView>(this);//弱引用
         mHandler = new LrcHandler(lrcViewRef);
 
         TypedArray array = getContext().obtainStyledAttributes(R.styleable.LrcView);
@@ -65,14 +64,12 @@ public class LrcView extends View implements LyricListener{
         mNomalPaint.setTextSize(mTextSize);
 
         mCurrentPaint = new Paint();
-        mCurrentPaint.setColor(Color.WHITE);
+        mCurrentPaint.setColor(Color.GREEN);
         mCurrentPaint.setTextSize(mTextSize);
-
+        this.mList = mList;
         //得到网络歌词
     }
-    public void setLyric(List<Lyric> mList){
-        this.mList = mList;
-    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -156,42 +153,6 @@ public class LrcView extends View implements LyricListener{
             }
         }
     }
-
-    @Override
-    public void playToEnd() {
-        mNextTime = 0;
-        mCurrentLine = 0;
-        mIsEnd = false;
-        updateTime(mNextTime);
-    }
-
-    @Override
-    public void playToPause(final long mt) {
-        Log.d("MaskMusic", "mNextTime CurrentTime : " + mt);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("执行了");
-                if (mList.size() > 0 ) {
-                    for (int i = 0; i < mList.size() - 1; i++) {
-                        if (mt >= mList.get(i).getTime()
-                                && mt <= mList.get(i+1).getTime()){
-                            Log.d("MaskMusic", mt + " 毫秒的歌词为 "
-                                    + mList.get(i).getLyric());
-                            mNextTime = mList.get(i).getTime();
-                            mCurrentLine = i;
-                            updateTime(mNextTime);
-                        }
-                    }
-                }else{
-                   // lrcViewToMusicActivity.LrcViewIsLrc(false);
-                }
-                Log.d("MaskMusic", "playToPause over");
-            }
-        }, 2000);
-    }
-
-
     private static class LrcHandler extends Handler {
         private WeakReference<LrcView> mLrcViewRef;
 

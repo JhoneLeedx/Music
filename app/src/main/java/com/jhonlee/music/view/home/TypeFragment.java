@@ -1,5 +1,6 @@
 package com.jhonlee.music.view.home;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -27,7 +28,7 @@ import butterknife.ButterKnife;
 /**
  * Created by JhoneLee on 2017/3/16.
  */
-
+@SuppressLint("ValidFragment")//解决fragment 构造方法带参数问题
 public class TypeFragment extends Fragment implements  MenuContract.View, MenuClickListener {
 
     @BindView(R.id.recycler)
@@ -45,7 +46,9 @@ public class TypeFragment extends Fragment implements  MenuContract.View, MenuCl
     public TypeFragment(String mType) {
         this.mType = mType;
     }
+    public TypeFragment(){
 
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
