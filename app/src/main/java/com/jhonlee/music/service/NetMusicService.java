@@ -1,5 +1,6 @@
 package com.jhonlee.music.service;
 
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,7 +15,9 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.jhonlee.music.listener.LyricListener;
+import com.jhonlee.music.notifi.MusicNotification;
 import com.jhonlee.music.pojo.SongMenuDetail;
+import com.jhonlee.music.pojo.SongToken;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,15 +34,25 @@ public class NetMusicService extends Service {
     private GetMp3UrlReceiver mp3UrlReceiver;
     private MusicReceiver musicReceiver;
 
-    private LyricListener lyricListener;
-
     private int currentIndex = 0;
     private int currentTime = 0;
     private int allTime = 0;
+    private MusicNotification notification;
+
+    private String url;
+    private String imgUrl;
+    private String name;
+    private String author;
+
     @Override
     public void onCreate() {
         super.onCreate();
         player = new MediaPlayer();
+
+        notification = MusicNotification.getMusicNotification();
+        notification.setContext(NetMusicService.this);
+        notification.setManager((NotificationManager) getSystemService(NOTIFICATION_SERVICE));
+        notification.onCreateMusicNotifi();
 
         //点击播放音乐的广播
         musicReceiver = new MusicReceiver();
@@ -51,6 +64,7 @@ public class NetMusicService extends Service {
         filter.addAction("MusicPlay");
         filter.addAction("MusicPause");
         filter.addAction("MusicPrevious");
+        filter.addAction("NotifiStart");
         registerReceiver(musicReceiver,filter);
 
 
@@ -100,7 +114,7 @@ public class NetMusicService extends Service {
 
         try {
             player.reset();
-            player.setDataSource( musicUrl);
+            player.setDataSource(musicUrl);
             player.prepareAsync();
             player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -112,6 +126,7 @@ public class NetMusicService extends Service {
                     intent.putExtra("isplay",true);
                     intent.putExtra("duration", allTime);  //通过Intent来传递歌曲的总长度
                     sendBroadcast(intent);
+                    notification.onUpdataMusicNotifi(name,author,imgUrl,player.isPlaying());
                     handler.sendEmptyMessage(0);
                 }
             });
@@ -124,8 +139,9 @@ public class NetMusicService extends Service {
             currentTime = player.getCurrentPosition();
             player.pause();
             sendIsplaying();
-        }
 
+        }
+        notification.onUpdataMusicNotifi(name,author,imgUrl,player.isPlaying());
     }
     // 音乐继续播放
     private void resume() {
@@ -133,8 +149,10 @@ public class NetMusicService extends Service {
         if (currentTime > 0) {
             player.seekTo(currentTime);
         }
+        notification.onUpdataMusicNotifi(name,author,imgUrl,player.isPlaying());
         handler.sendEmptyMessage(0);
         sendIsplaying();
+
     }
     // 音乐停止
     private void stop() {
@@ -143,6 +161,8 @@ public class NetMusicService extends Service {
             player.prepare();
         } catch (IOException e) {
         }
+        notification.onUpdataMusicNotifi(name,author,imgUrl,player.isPlaying());
+        notification.onCancelMusicNotifi();
     }
     //发送给播放页面player的播放状态
     private void sendIsplaying(){
@@ -158,7 +178,10 @@ public class NetMusicService extends Service {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals("startMusic")){
-                String url = intent.getStringExtra("url");
+                url = intent.getStringExtra("url");
+                imgUrl = intent.getStringExtra("imgUrl");
+                name = intent.getStringExtra("name");
+                author = intent.getStringExtra("author");
                 for (int i=0;i<mp3Urls.size();i++){
                     if(mp3Urls.get(i).equals(url))
                         currentIndex = i;
@@ -177,6 +200,8 @@ public class NetMusicService extends Service {
                     resume();
                 }
             }else if (action.equals("MusicPlay")){
+                resume();
+            }else if (action.equals("NotifiStart")){
                 resume();
             }
         }
@@ -203,6 +228,8 @@ public class NetMusicService extends Service {
                     //间隔一秒给ui发消息更新seekbar
                     handler.sendEmptyMessageDelayed(0,1000);
                 }
+            }else {
+
             }
         }
     };

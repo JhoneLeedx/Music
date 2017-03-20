@@ -70,7 +70,6 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
     private SongContract.Presenter presenter;
 
     private boolean flag;
-    private LyricListener lyricListener;
     private LrcView lrcView;
 
     @Override
@@ -95,12 +94,13 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
     protected void onStart() {
         super.onStart();
 
-
         presenter = new SongPresenterImpl();
         presenter.attachView(this);
-        String ids = new StringBuffer().append("[").append(mTrack.getId()).append("]").toString();
-        presenter.showSong(mTrack.getId(), ids);
-        presenter.showSongLyric(mTrack.getId());
+        if (mTrack!=null){
+            String ids = new StringBuffer().append("[").append(mTrack.getId()).append("]").toString();
+            presenter.showSong(mTrack.getId(), ids);
+            presenter.showSongLyric(mTrack.getId());
+        }
         preceiver = new PlayMusciReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("getDuration");
@@ -117,6 +117,7 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
         switch (view.getId()) {
             case R.id.tv_previous:
                 intent.setAction("MusicPrevious");
+                lyricHandler.sendEmptyMessage(0);
                 break;
             case R.id.tv_play_pause:
                 if (flag) {
@@ -127,6 +128,7 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
                 break;
             case R.id.tv_next:
                 intent.setAction("MusicNext");
+                lyricHandler.sendEmptyMessage(0);
                 break;
         }
         sendBroadcast(intent);
@@ -143,6 +145,10 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
                     intent.setAction("seekbar");
                     intent.putExtra("progress", progress);
                     sendBroadcast(intent);
+                    if (lrcView!=null){
+                        lrcView.refreshLcy();
+                        lrcView.updateTime(progress);
+                    }
                 }
             }
 
@@ -175,13 +181,17 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
 
     @Override
     public void showSongLyric(List<Lyric> lyrics) {
-        if (lrcView!=null)
-            frameLayout.removeView(lrcView);
-        for (Lyric l : lyrics)
-            Log.d("歌词", "" + l.getTime() + ":" + l.getLyric());
-        Message message = new Message();
-        message.obj = lyrics;
-        lyricHandler.sendMessage(message);
+        if (lyrics.size()>0){
+            for (Lyric l : lyrics)
+                Log.d("歌词", "" + l.getTime() + ":" + l.getLyric());
+            Message message = new Message();
+            message.obj = lyrics;
+            message.what = 1;
+            lyricHandler.sendMessage(message);
+        }else {
+            lyricHandler.sendEmptyMessage(0);
+        }
+
     }
 
     private class PlayMusciReceiver extends BroadcastReceiver {
@@ -237,6 +247,9 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
             Intent i = new Intent();
             i.setAction("startMusic");
             i.putExtra("url", song.getMp3Url());
+            i.putExtra("imgUrl",song.getAlbum().getPicUrl());
+            i.putExtra("name",song.getName());
+            i.putExtra("author",song.getArtists().get(0).getName());
             sendBroadcast(i);
         }
     };
@@ -263,12 +276,21 @@ public class MusicDetailActivity extends AppCompatActivity implements SongContra
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            List<Lyric> list = (List<Lyric>) msg.obj;
-            if (list.size()>0){
-                lrcView = new LrcView(getBaseContext(),list);
-                frameLayout.addView(lrcView);//lrcview.setLyric(list);
+            if (msg.what == 0){
+                remoView();
+            }else if (msg.what == 1){
+                List<Lyric> list = (List<Lyric>) msg.obj;
+                     remoView();
+                if (list.size()>0){
+                    lrcView = new LrcView(getBaseContext(),list);
+                    frameLayout.addView(lrcView);//lrcview.setLyric(list);
+                }
             }
 
         }
     };
+    private void remoView(){
+        if (lrcView!=null)
+            frameLayout.removeView(lrcView);
+    }
 }

@@ -6,10 +6,19 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.widget.RemoteViews;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 import com.jhonlee.music.R;
 import com.jhonlee.music.pojo.Music;
+import com.jhonlee.music.pojo.SongMenuDetail;
+import com.jhonlee.music.pojo.SongToken;
 import com.jhonlee.music.util.Const;
 import com.jhonlee.music.util.MusicUtil;
 
@@ -45,15 +54,16 @@ public class MusicNotification extends Notification {
     private boolean flag;
 
     // 给Service 发送广播
-    private final String MUSIC_NOTIFICATION_ACTION_PLAY = "music.notificaion.play";
-    private final String MUSIC_NOTIFICATION_ACTION_NEXT = "music.notificaion.next";
-    private final String MUSIC_NOTIFICATION_ACTION_CLOSE = "music.notificaion.close";
-    private final String MUSIC_NOTIFICATION_ACTION_PAUSE = "music.notificaion.pause";
+    private final String MUSIC_NOTIFICATION_ACTION_PLAY = "NotifiStart";
+    private final String MUSIC_NOTIFICATION_ACTION_NEXT = "MusicNext";
+    private final String MUSIC_NOTIFICATION_ACTION_CLOSE = "MusicClose";
+    private final String MUSIC_NOTIFICATION_ACTION_PAUSE = "MusicPause";
     private Intent play = null, next = null, close = null,pause = null;
 
 
     public void setContext(Context context) {
         this.context = context;
+        builder = new Builder(context);
     }
 
     public void setManager(NotificationManager manager) {
@@ -64,7 +74,6 @@ public class MusicNotification extends Notification {
         // 初始化操作
         remoteViews = new RemoteViews("com.jhonlee.music",
                 R.layout.notifacation);
-        builder = new Builder(context);
 
         // 初始化控制的Intent
         play = new Intent();
@@ -99,15 +108,10 @@ public class MusicNotification extends Notification {
         // 设置点击事件
 
         // 1.注册控制点击事件.注册暂停点击事件
-        play.putExtra("state",
-                Const.STATE_PLAY);
 
         PendingIntent pplay = PendingIntent.getBroadcast(context, REQUEST_CODE,
                 play, PendingIntent.FLAG_UPDATE_CURRENT);
-
         // 4.注册暂停点击事件
-        pause.putExtra("state",
-                Const.STATE_PAUSE);
         PendingIntent ppause = PendingIntent.getBroadcast(context, REQUEST_CODE,
                 pause, PendingIntent.FLAG_UPDATE_CURRENT);
         if (flag){
@@ -118,24 +122,16 @@ public class MusicNotification extends Notification {
                    pplay);
        }
 
-
         // 2.注册下一首点击事件
-        next.putExtra("state",
-                Const.STATE_NEXT);
         PendingIntent pnext = PendingIntent.getBroadcast(context, REQUEST_CODE,
                 next, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.iv_nofitication_next,
                 pnext);
-
         // 3.注册关闭点击事件
-        close.putExtra("state",
-                Const.STATE_STOP);
         PendingIntent pclose = PendingIntent.getBroadcast(context, REQUEST_CODE,
                 close, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.iv_nofitication_colse,
                 pclose);
-
-
 
         builder.setContent(remoteViews).setWhen(System.currentTimeMillis())
                 // 通知产生的时间，会在通知信息里显示
@@ -145,27 +141,35 @@ public class MusicNotification extends Notification {
                 .setSmallIcon(R.drawable.ic_pause_white_36dp);
 
         // 兼容性实现
-        musicNotifi = builder.getNotification();
-        //      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-        //          musicNotifi = builder.getNotification();
-        //      } else {
-        //          musicNotifi = builder.build();
-        //      }
+      //  musicNotifi = builder.getNotification();
+              if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                  musicNotifi = builder.getNotification();
+              } else {
+                  musicNotifi = builder.build();
+              }
         musicNotifi.flags = Notification.FLAG_ONGOING_EVENT;
         manager.notify(PendingIntent.FLAG_UPDATE_CURRENT, musicNotifi);
     }
     /**
      * 更新通知
      */
-    public void onUpdataMusicNotifi(Music mm, boolean isplay) {
+    public void onUpdataMusicNotifi(String name,String author,String imgUrl, boolean isplay) {
 
         flag = isplay;
         // 设置添加内容
         remoteViews.setTextViewText(R.id.tv_nofitication_singname,
-                (mm.getSong()!=null?mm.getSong():"什么东东"));
+                (name!=null?name:"什么东东"));
         remoteViews.setTextViewText(R.id.tv_nofitication_singer,
-                (mm.getSinger()!=null?mm.getSinger():"未知"));
-        remoteViews.setImageViewBitmap(R.id.iv_notification_logo, MusicUtil.getArtworkFromFile(context,mm.getId(),mm.getAlbumId()));
+                (author!=null?author:"未知"));
+        Glide.with(context).load(imgUrl)
+                .asBitmap()
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                        remoteViews.setImageViewBitmap(R.id.iv_notification_logo, resource);
+                    }
+                });
+
         //判断是否播放
         if (isplay) {
             remoteViews.setImageViewResource(R.id.iv_nofitication_play,

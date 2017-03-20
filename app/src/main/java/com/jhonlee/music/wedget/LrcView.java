@@ -37,6 +37,8 @@ public class LrcView extends View {
     private WeakReference<LrcView> lrcViewRef;
     private  LrcHandler mHandler;
     public LrcView(Context context,List<Lyric> mList) {
+       /* super(context);
+        init(mList);*/
         this(context,null,mList);
     }
 
@@ -47,7 +49,7 @@ public class LrcView extends View {
 
     private void init(List<Lyric> mList){
 
-        lrcViewRef = new WeakReference<LrcView>(this);//弱引用
+        lrcViewRef = new WeakReference<LrcView>(this);
         mHandler = new LrcHandler(lrcViewRef);
 
         TypedArray array = getContext().obtainStyledAttributes(R.styleable.LrcView);
@@ -73,8 +75,10 @@ public class LrcView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (mList==null)
+        if (mList==null) {
+            canvas.drawText("当前暂无歌词", getHeight() / 2, getWidth() / 2, mNomalPaint);
             return;
+        }
         float centerY = getHeight()/2+mTextSize/2+mAnimOffset;
 
         String currentStr = mList.get(mCurrentLine).getLyric();
@@ -152,6 +156,13 @@ public class LrcView extends View {
                 break;
             }
         }
+    }
+
+    public void refreshLcy(){
+        mCurrentLine = 0;
+        mNextTime = 0;
+        mIsEnd = false;
+        updateTime(mNextTime);
     }
     private static class LrcHandler extends Handler {
         private WeakReference<LrcView> mLrcViewRef;

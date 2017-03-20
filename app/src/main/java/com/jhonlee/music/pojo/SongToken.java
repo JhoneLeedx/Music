@@ -1,5 +1,8 @@
 package com.jhonlee.music.pojo;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
 
 /**
@@ -46,7 +49,7 @@ public class SongToken {
     public static class EqualizersBean {
     }
 
-    public static class SongsBean {
+    public static class SongsBean implements Parcelable{
         /**
          * name : 我们万岁
          * id : 456175812
@@ -122,6 +125,44 @@ public class SongToken {
         private List<?> alias;
         private List<ArtistsBeanX> artists;
         private List<?> rtUrls;
+
+        protected SongsBean(Parcel in) {
+            name = in.readString();
+            id = in.readInt();
+            position = in.readInt();
+            status = in.readInt();
+            fee = in.readInt();
+            copyrightId = in.readInt();
+            disc = in.readString();
+            no = in.readInt();
+            starred = in.readByte() != 0;
+            popularity = in.readInt();
+            score = in.readInt();
+            starredNum = in.readInt();
+            duration = in.readInt();
+            playedNum = in.readInt();
+            dayPlays = in.readInt();
+            hearTime = in.readInt();
+            copyFrom = in.readString();
+            commentThreadId = in.readString();
+            ftype = in.readInt();
+            copyright = in.readInt();
+            mp3Url = in.readString();
+            mvid = in.readInt();
+            rtype = in.readInt();
+        }
+
+        public static final Creator<SongsBean> CREATOR = new Creator<SongsBean>() {
+            @Override
+            public SongsBean createFromParcel(Parcel in) {
+                return new SongsBean(in);
+            }
+
+            @Override
+            public SongsBean[] newArray(int size) {
+                return new SongsBean[size];
+            }
+        };
 
         public String getName() {
             return name;
@@ -409,6 +450,38 @@ public class SongToken {
 
         public void setRtUrls(List<?> rtUrls) {
             this.rtUrls = rtUrls;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(name);
+            dest.writeInt(id);
+            dest.writeInt(position);
+            dest.writeInt(status);
+            dest.writeInt(fee);
+            dest.writeInt(copyrightId);
+            dest.writeString(disc);
+            dest.writeInt(no);
+            dest.writeByte((byte) (starred ? 1 : 0));
+            dest.writeInt(popularity);
+            dest.writeInt(score);
+            dest.writeInt(starredNum);
+            dest.writeInt(duration);
+            dest.writeInt(playedNum);
+            dest.writeInt(dayPlays);
+            dest.writeInt(hearTime);
+            dest.writeString(copyFrom);
+            dest.writeString(commentThreadId);
+            dest.writeInt(ftype);
+            dest.writeInt(copyright);
+            dest.writeString(mp3Url);
+            dest.writeInt(mvid);
+            dest.writeInt(rtype);
         }
 
         public static class AlbumBean {

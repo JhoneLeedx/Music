@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.jhonlee.music.notifi.MusicNotification;
 import com.jhonlee.music.pojo.Music;
+import com.jhonlee.music.pojo.SongMenuDetail;
 import com.jhonlee.music.util.Const;
 import com.jhonlee.music.util.MusicUtil;
 
@@ -30,9 +31,9 @@ public class MusicService extends Service  {
 
 
     private MediaPlayer player;
-    private MusicReceiver receiver;
+  //  private MusicReceiver receiver;
 
-    private List<Music> musics;
+    private List<SongMenuDetail.TracksBean> musics;
     private Music music;
     private int currentIndex = 0;
 
@@ -53,7 +54,7 @@ public class MusicService extends Service  {
     public void onCreate() {
 
         super.onCreate();
-        player = new MediaPlayer();
+     /*   player = new MediaPlayer();
         musics = MusicUtil.getData(this);
 
 
@@ -104,10 +105,10 @@ public class MusicService extends Service  {
         });
 
     //    startBarThread();
-
+*/
     }
 
-
+/*
     @Override
     public void onDestroy() {
 
@@ -121,8 +122,8 @@ public class MusicService extends Service  {
         }
         unregisterReceiver(receiver);
 
-    }
-
+    }*/
+/*
     //创建广播接收器用于接收前台Activity发去的广播
     private class MusicReceiver extends BroadcastReceiver {
 
@@ -301,5 +302,5 @@ public class MusicService extends Service  {
                 }
             }
         }// while
-    }
+    }*/
 }
